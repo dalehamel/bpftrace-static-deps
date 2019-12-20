@@ -224,6 +224,9 @@ src_install() {
 
 	multilib-minimal_src_install
 
+	# Copy static libclang to usr/lib
+	mv "${ED%/}"/lib/libclang.a "${ED%/}"/usr/lib/ || die
+
 	# Move runtime headers to /usr/lib/clang, where they belong
 	mv "${ED%/}"/usr/include/clangrt "${ED%/}"/usr/lib/clang || die
 	# move (remaining) wrapped headers back
