@@ -224,8 +224,14 @@ src_install() {
 
 	multilib-minimal_src_install
 
-	# Copy static libclang to usr/lib
-	mv "${ED%/}"/lib/libclang.a "${ED%/}"/usr/lib/ || die
+	
+
+#/var/tmp/portage/sys-devel/clang-8.0.1/work/x/y/cfe-8.0.1.src-abi_x86_64.amd64/lib64/libclang.a# Copy static libclang to usr/lib
+
+#/var/tmp/portage/sys-devel/clang-8.0.1/image/lib/libclang.a
+
+	# FIXME is this exported to the install dir?
+	find "${WORKDIR}" | grep 'libclang\.a' | xargs mv "${ED%/}"/usr/lib/libclang.a || die
 
 	# Move runtime headers to /usr/lib/clang, where they belong
 	mv "${ED%/}"/usr/include/clangrt "${ED%/}"/usr/lib/clang || die
