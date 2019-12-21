@@ -125,12 +125,14 @@ multilib_src_configure() {
 	local mycmakeargs=(
 		# disable appending VCS revision to the version to improve
 		# direct cache hit ratio
-		-DLLVM_APPEND_VC_REV=OFF
 		-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/lib/llvm/${SLOT}"
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
 
 		-DLLVM_TARGETS_TO_BUILD="${LLVM_TARGETS// /;}"
 		-DLLVM_BUILD_TESTS=$(usex test)
+
+		-DFFI_INCLUDE_DIR="${ffi_cflags#-I}"
+		-DFFI_LIBRARY_DIR="${ffi_ldflags#-L}"
 
 		-DLLVM_ENABLE_FFI=$(usex libffi)
 		-DLLVM_ENABLE_LIBEDIT=$(usex libedit)
@@ -141,31 +143,24 @@ multilib_src_configure() {
 		-DLLVM_ENABLE_EH=ON
 		-DLLVM_ENABLE_RTTI=ON
 
-		-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON \
-		-DLLVM_BUILD_LLVM_DYLIB=ON \
-		-DLLVM_DEFAULT_TARGET_TRIPLE="$CBUILD" \
-		-DLLVM_ENABLE_ASSERTIONS=OFF \
-		-DLLVM_ENABLE_CXX1Y=ON \
-		-DLLVM_ENABLE_LIBCXX=OFF \
-		-DLLVM_ENABLE_PIC=ON \
-		-DLLVM_ENABLE_SPHINX=OFF \
-		-DLLVM_ENABLE_ZLIB=ON \
+		-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON
+		-DLLVM_BUILD_LLVM_DYLIB=ON
+		-DLLVM_DEFAULT_TARGET_TRIPLE="$CBUILD"
+		-DLLVM_ENABLE_ASSERTIONS=OFF
+		-DLLVM_ENABLE_CXX1Y=ON
+		-DLLVM_ENABLE_LIBCXX=OFF
+		-DLLVM_ENABLE_PIC=ON
+		-DLLVM_ENABLE_SPHINX=OFF
+		-DLLVM_ENABLE_ZLIB=ON
+
 
 		-DLLVM_HOST_TRIPLE="${CHOST}"
 
-		-DFFI_INCLUDE_DIR="${ffi_cflags#-I}"
-		-DFFI_LIBRARY_DIR="${ffi_ldflags#-L}"
-		# used only for llvm-objdump tool
-		-DHAVE_LIBXAR=$(multilib_native_usex xar 1 0)
-
-		# disable OCaml bindings (now in dev-ml/llvm-ocaml)
-		-DOCAMLFIND=NO
+		-DLLVM_INCLUDE_EXAMPLES=OFF
+		-DLLVM_LINK_LLVM_DYLIB=ON
+		-DLLVM_APPEND_VC_REV=OFF
 	)
 
-
-	use test && mycmakeargs+=(
-		-DLLVM_LIT_ARGS="-vv;-j;${LIT_JOBS:-$(makeopts_jobs "${MAKEOPTS}" "$(get_nproc)")}"
-	)
 
 	if tc-is-cross-compiler; then
 		local tblgen="${EPREFIX}/usr/lib/llvm/${SLOT}/bin/llvm-tblgen"
