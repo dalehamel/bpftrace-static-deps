@@ -137,6 +137,9 @@ multilib_src_configure() {
 		-DLLVM_ENABLE_RTTI=ON
 		-DLIBCLANG_BUILD_STATIC=ON # For bpftrace
 		-DCLANG_PLUGIN_SUPPORT=ON
+
+		# Disable because no multilib
+		-DLLVM_TOOL_CLANG_TOOLS_EXTRA_BUILD=OFF
 	)
 
 	if tc-is-cross-compiler; then
