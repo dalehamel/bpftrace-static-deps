@@ -177,8 +177,8 @@ src_install() {
 
 	multilib-minimal_src_install
 
-	#find "${WORKDIR}" | grep 'libclang[^\.]*\.a$' | \
-	#	xargs -I@ mv @ "${ED%/}"/usr/lib/llvm/${SLOT}/lib64/ || die
+	find "${WORKDIR}" | grep 'libclang[^\.]*\.a$' | \
+		xargs -I@ mv @ "${ED%/}"/usr/lib/llvm/${SLOT}/lib64/ || die
 
 	# Move runtime headers to /usr/lib/clang, where they belong
 	mv "${ED%/}"/usr/include/clangrt "${ED%/}"/usr/lib/clang || die
