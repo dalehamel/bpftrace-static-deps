@@ -126,65 +126,18 @@ multilib_src_configure() {
 		-DLLVM_CONFIG="$(type -P "${CHOST}-llvm-config")"
 		-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/lib/llvm/${SLOT}"
 		-DCMAKE_INSTALL_MANDIR="${EPREFIX}/usr/lib/llvm/${SLOT}/share/man"
+
 		# relative to bindir
 		-DCLANG_RESOURCE_DIR="../../../../lib/clang/${clang_version}"
 
 		-DLLVM_TARGETS_TO_BUILD="${LLVM_TARGETS// /;}"
-		-DLLVM_BUILD_TESTS=$(usex test)
 
 		# these are not propagated reliably, so redefine them
 		-DLLVM_ENABLE_EH=ON
 		-DLLVM_ENABLE_RTTI=ON
 		-DLIBCLANG_BUILD_STATIC=ON # For bpftrace
 		-DCLANG_PLUGIN_SUPPORT=ON
-
-		-DCMAKE_DISABLE_FIND_PACKAGE_LibXml2=$(usex !xml)
-		# libgomp support fails to find headers without explicit -I
-		# furthermore, it provides only syntax checking
-		-DCLANG_DEFAULT_OPENMP_RUNTIME=libomp
-
-		# override default stdlib and rtlib
-		-DCLANG_DEFAULT_CXX_STDLIB=$(usex default-libcxx libc++ "")
-		-DCLANG_DEFAULT_RTLIB=$(usex default-compiler-rt compiler-rt "")
-
-		-DCLANG_ENABLE_ARCMT=$(usex static-analyzer)
-		-DCLANG_ENABLE_STATIC_ANALYZER=$(usex static-analyzer)
-		# z3 is not multilib-friendly
-		-DCLANG_ANALYZER_ENABLE_Z3_SOLVER=$(usex z3)
 	)
-	use test && mycmakeargs+=(
-		-DLLVM_MAIN_SRC_DIR="${WORKDIR}/llvm"
-		-DLLVM_LIT_ARGS="-vv;-j;${LIT_JOBS:-$(makeopts_jobs "${MAKEOPTS}" "$(get_nproc)")}"
-	)
-
-	if multilib_is_native_abi; then
-		mycmakeargs+=(
-			# normally copied from LLVM_INCLUDE_DOCS but the latter
-			# is lacking value in stand-alone builds
-			-DCLANG_INCLUDE_DOCS=$(usex doc)
-			-DCLANG_TOOLS_EXTRA_INCLUDE_DOCS=$(usex doc)
-		)
-		use doc && mycmakeargs+=(
-			-DLLVM_BUILD_DOCS=ON
-			-DLLVM_ENABLE_SPHINX=ON
-			-DCLANG_INSTALL_SPHINX_HTML_DIR="${EPREFIX}/usr/share/doc/${PF}/html"
-			-DCLANG-TOOLS_INSTALL_SPHINX_HTML_DIR="${EPREFIX}/usr/share/doc/${PF}/tools-extra"
-			-DSPHINX_WARNINGS_AS_ERRORS=OFF
-		)
-		use z3 && mycmakeargs+=(
-			-DZ3_INCLUDE_DIR="${EPREFIX}/usr/include/z3"
-		)
-	else
-		mycmakeargs+=(
-			-DLLVM_TOOL_CLANG_TOOLS_EXTRA_BUILD=OFF
-		)
-	fi
-
-	if [[ -n ${EPREFIX} ]]; then
-		mycmakeargs+=(
-			-DGCC_INSTALL_PREFIX="${EPREFIX}/usr"
-		)
-	fi
 
 	if tc-is-cross-compiler; then
 		[[ -x "/usr/bin/clang-tblgen" ]] \
@@ -224,9 +177,8 @@ src_install() {
 
 	multilib-minimal_src_install
 
-	# FIXME is this exported to the install dir?
-	find "${WORKDIR}" | grep 'libclang[^\.]*\.a$' | \
-		xargs -I@ mv @ "${ED%/}"/usr/lib/llvm/${SLOT}/lib64/ || die
+	#find "${WORKDIR}" | grep 'libclang[^\.]*\.a$' | \
+	#	xargs -I@ mv @ "${ED%/}"/usr/lib/llvm/${SLOT}/lib64/ || die
 
 	# Move runtime headers to /usr/lib/clang, where they belong
 	mv "${ED%/}"/usr/include/clangrt "${ED%/}"/usr/lib/clang || die
